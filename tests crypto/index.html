@@ -1,0 +1,1090 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>BitBubbles | Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.0/dist/chartjs-chart-financial.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --text-primary: #f8fafc;
+            --color-positive: #10b981;
+            --color-negative: #ef4444;
+            --color-primary: #4f46e5;
+            --color-header-btn: #334155;
+            --color-header-btn-hover: #475569;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Body e layout geral */
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at 50% 50%, #1e293b 0%, #0f172a 100%);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+        }
+
+        /* ---------- HEADER ----------- */
+        .glass-header {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            pointer-events: auto;
+        }
+        
+        .logo-circle {
+            width: 44px;
+            height: 44px;
+            background: #F7931A;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+            font-size: 22px;
+        }
+        .site-title { 
+            font-size: 24px;
+            color: #fff; 
+            letter-spacing: 0.6px; 
+        }
+
+        /* Container para Busca e Ações */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px; 
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-box input {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 12px;
+            width: 260px;
+            border-radius: 10px;
+            color: #fff;
+            outline: none;
+            transition: all .15s ease;
+        }
+        .search-box input:focus {
+            background: rgba(255,255,255,0.09);
+            border-color: rgba(255,255,255,0.14);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+        }
+        
+        /* Estilo base para botões de ação */
+        .action-btn {
+            background: var(--color-primary);
+            color: white;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .action-btn:hover {
+            background: #6366f1;
+        }
+
+        /* Sobrescreve a cor para os botões do HEADER */
+        .header-action-btn {
+            background: var(--color-header-btn);
+        }
+        .header-action-btn:hover {
+            background: var(--color-header-btn-hover);
+        }
+
+        /* Botão para alternar a visualização da Carteira */
+        #walletToggleBtn {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s, color 0.2s;
+            margin: 12px auto 0;
+            display: block;
+            width: fit-content;
+        }
+        
+        #walletToggleBtn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* --------- BUBBLE CONTAINER ---------- */
+        #bubble-container {
+            width: 100%;
+            min-height: calc(100vh - 80px); 
+            position: relative;
+            display: block;
+        }
+
+        /* Bolhas D3 */
+        .bubble-node {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: grab;
+            will-change: transform;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+            transition: border-color .18s, box-shadow .18s;
+            pointer-events: auto;
+        }
+        .bubble-node:hover { 
+            z-index: 9999;
+            border-color: rgba(255,255,255,0.28); 
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5); 
+        }
+        .b-symbol { 
+            font-weight: 800;
+            letter-spacing: -0.5px; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); 
+        }
+        .b-change { 
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); 
+        }
+        .b-price { 
+            opacity: 0.85; 
+            font-weight: 500;
+            font-size: 0.85em; 
+        }
+        .b-img { 
+            width: 26%; 
+            height: 26%; 
+            object-fit: contain; 
+            margin-bottom: 4%;
+            pointer-events: none; 
+            border-radius: 50%; 
+        }
+
+        /* ------- RANKING (compacto - estilo A) ------- */
+        #rank-table-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 10px 14px;
+            background: rgba(15,23,42,0.7);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .rank-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 13px; 
+            color: #e6eef8;
+        }
+        .rank-table th, .rank-table td { 
+            padding: 8px 10px; 
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.03); 
+        }
+        .rank-table th { 
+            color: #94a3b8; 
+            font-weight: 600;
+            font-size: 12px; 
+            position: sticky; 
+            top: 0; 
+            background: transparent; 
+        }
+        .rank-table tbody tr:hover { 
+            background: rgba(255,255,255,0.02);
+            cursor: pointer; 
+        }
+        .coin-icon { 
+            width: 18px; 
+            height: 18px; 
+            border-radius: 50%; 
+            margin-right: 8px;
+            vertical-align: middle; 
+        }
+
+        .positive { 
+            color: var(--color-positive);
+        }
+        .negative { 
+            color: var(--color-negative);
+        }
+
+        /* Estilos de modal (mantidos) */
+        .modal { 
+            display: none;
+            position: fixed; 
+            inset: 0; 
+            z-index: 12000; 
+            background: rgba(0,0,0,0.7); 
+            backdrop-filter: blur(4px); 
+            align-items: center; 
+            justify-content: center;
+        }
+        .modal.show { 
+            display: flex;
+        }
+        .modal-content { 
+            background: #0f172a; 
+            width: 92%; 
+            max-width: 900px; 
+            padding: 18px; 
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.06); 
+            position: relative; 
+        } 
+        .modal-content-sm { 
+            max-width: 500px;
+        }
+        .modal-close { 
+            position: absolute; 
+            top: 12px; 
+            right: 18px; 
+            background: transparent; 
+            border: none;
+            color: #fff; 
+            font-size: 22px; 
+            cursor: pointer; 
+        }
+        .chart-container { 
+            height: 320px; 
+            width: 100%;
+            margin-top: 12px; 
+        }
+        .price-change-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 10px 0;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        
+        /* Estilo para o controle de gráfico */
+        .chart-controls {
+            display: flex;
+            align-items: center;
+        }
+        .control-btn {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        /* O único botão ativo (Linha) */
+        .control-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* Conteúdo do Modal da Carteira */
+        .wallet-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .wallet-list-item:last-child {
+            border-bottom: none;
+        }
+        .wallet-remove-btn {
+            background: var(--color-negative);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        /* Estilos para o formulário de Comunidade */
+        .community-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Espaçamento entre os campos */
+        }
+
+        .community-form textarea,
+        .community-form input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .community-form textarea:focus,
+        .community-form input:focus {
+            border-color: var(--color-primary);
+        }
+
+        .community-form button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+        }
+
+        /* ------- FOOTER ------- */
+        .site-footer {
+            width: 100%;
+            padding: 18px 12px;
+            margin-top: 30px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+            background: transparent;
+        }
+
+        /* Responsive */
+        @media (max-width: 800px) {
+            /* 1. Ajustes do Cabeçalho para Mobile (Evitando quebras inesperadas) */
+            .glass-header {
+                padding: 10px;
+            }
+            .header-content {
+                flex-wrap: wrap;
+            }
+            .logo-box {
+                width: auto; /* Deixa o logo no tamanho natural */
+            }
+            .site-title {
+                font-size: 20px;
+            }
+            .logo-circle {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+            .header-actions { 
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+                width: 100%; /* Força a ocupar a largura total para os botões e busca */
+                margin-top: 8px;
+                order: 2; /* Coloca as ações logo abaixo do logo */
+            }
+            .search-box {
+                order: 3;
+                width: 100%; 
+                margin-top: 8px; 
+            }
+            .search-box input { 
+                width: 100%;
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+            .action-btn {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+            
+            /* Remove o flex-grow para evitar que os botões se esmaguem ou cresçam demais */
+            .header-actions > .action-btn {
+                flex-grow: 1; /* Permite que os botões se expandam um pouco */
+                min-width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="glass-header" role="banner">
+        <div class="header-content">
+            <div class="logo-box">
+                <div class="logo-circle">₿</div>
+                <div class="site-title">BitBubbles</div>
+            </div>
+
+            <div class="header-actions">
+                <button class="action-btn header-action-btn" onclick="openWalletModal()">💰 Carteira</button>
+
+                <button class="action-btn header-action-btn" onclick="openCommunityModal()">👥 Comunidade</button>
+            </div>
+            
+            <div class="search-box" role="search">
+                <input id="searchInput" type="text" placeholder="Buscar moeda..." aria-label="Buscar moeda">
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <button id="walletToggleBtn" onclick="toggleWalletView()">Ver Minha Carteira</button>
+
+        <section id="bubble-container" aria-live="polite"></section>
+
+        <section id="rank-table-container" aria-label="Ranking de moedas">
+        </section>
+    </main>
+
+    <div class="modal" id="chartModal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true">
+            <button class="modal-close" onclick="closeModal('chartModal')" aria-label="Fechar">×</button>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                <div>
+                    <h2 id="mSymbol" style="font-size:1.6rem; margin:0;">BTC</h2>
+                    <div id="mPrice" style="color:#94a3b8; margin-top:4px;">$0.00</div>
+                </div>
+
+                <div class="chart-controls" role="tablist" aria-label="Tipo de gráfico">
+                    <button class="control-btn active" data-type="line">📈 Linha (7 dias)</button>
+                </div>
+            </div>
+
+            <div id="priceChangeBar" class="price-change-bar">
+            </div>
+
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+            
+            <button id="addToWalletBtn" class="action-btn" style="width:100%; margin-top:12px;" onclick="handleToggleCoinFromChart()">Adicionar à Carteira</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="communityModal" aria-hidden="true">
+        <div class="modal-content modal-content-sm" role="dialog" aria-modal="true">
+            <button class="modal-close" onclick="closeModal('communityModal')" aria-label="Fechar">×</button>
+            <h2 style="font-size:1.4rem; margin-bottom:15px;">👥 Fale com a Comunidade</h2>
+            
+            <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">Deixe seu feedback, sugestões de melhoria ou reporte problemas. Sua opinião é valiosa para nós!</p>
+
+            <form class="community-form" onsubmit="handleFeedbackSubmit(event)">
+                <textarea id="feedbackText" placeholder="Digite seu comentário ou sugestão aqui..." required></textarea>
+                <input type="text" id="feedbackEmail" placeholder="Seu e-mail (Opcional)">
+                <button type="submit">Enviar Feedback</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="walletModal" aria-hidden="true">
+        <div class="modal-content modal-content-sm" role="dialog" aria-modal="true">
+            <button class="modal-close" onclick="closeModal('walletModal')" aria-label="Fechar">×</button>
+            <h2 style="font-size:1.4rem; margin-bottom:15px;">💰 Minha Carteira</h2>
+            
+            <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:15px;">Adicione moedas no modal de detalhes do gráfico (clicando nas bolhas ou na tabela) para montar sua carteira personalizada.</p>
+
+            <div id="walletList">
+                <p style="color:#94a3b8; text-align:center;">Nenhuma moeda na sua carteira.</p>
+            </div>
+        </div>
+    </div>
+    <footer class="site-footer">
+        © 2025 Crypto Bubble Tracker — Powered by CoinGecko API
+    </footer>
+
+    <script>
+        /* ------------------------------
+           Função utilitária de Fetch com Retry
+        ------------------------------ */
+        
+        async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                } catch (error) {
+                    console.warn(`Tentativa ${i + 1} de ${retries} falhou para ${url}.`, error);
+                    if (i < retries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        throw new Error(`Falha ao buscar dados após ${retries} tentativas.`);
+                    }
+                }
+            }
+        }
+
+
+        /* ------------------------------
+           Variáveis globais / estado
+        ------------------------------ */
+        const container = document.getElementById('bubble-container');
+        const rankContainer = document.getElementById('rank-table-container');
+        const searchInput = document.getElementById('searchInput');
+        const walletToggleBtn = document.getElementById('walletToggleBtn');
+
+        let globalCoinData = [];
+        let nodes = [];
+        let simulation = null;
+        let chartInstance = null;
+        let currentCoinData = null;
+        let currentPrices = [];
+        let currentLabels = [];
+        let isWalletViewActive = false; 
+
+        /* --- LOGICA DA CARTEIRA --- */
+        let userWallet = loadWallet();
+
+        function loadWallet() {
+            try {
+                const stored = localStorage.getItem('userWallet');
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error("Erro ao carregar carteira do localStorage", e);
+                return [];
+            }
+        }
+
+        function saveWallet(wallet) {
+            try {
+                localStorage.setItem('userWallet', JSON.stringify(wallet));
+                userWallet = wallet;
+            } catch (e) {
+                console.error("Erro ao salvar carteira no localStorage", e);
+            }
+        }
+
+        function toggleCoinInWallet(coinId) {
+            const index = userWallet.indexOf(coinId);
+            if (index > -1) {
+                userWallet.splice(index, 1); // Remove
+            } else {
+                userWallet.push(coinId); // Adiciona
+            }
+            saveWallet(userWallet);
+            rebuildFromSearch();
+            renderWalletList(); 
+        }
+    
+        function handleToggleCoinFromChart() {
+            if (!currentCoinData) return;
+            const coinId = currentCoinData.id;
+            toggleCoinInWallet(coinId);
+            
+            updateWalletButtonText(coinId);
+        }
+
+        function updateWalletButtonText(coinId) {
+            const btn = document.getElementById('addToWalletBtn');
+            const isInWallet = userWallet.includes(coinId);
+            btn.innerText = isInWallet ? '✅ Remover da Carteira' : 'Adicionar à Carteira';
+            btn.style.backgroundColor = isInWallet ? 'var(--color-negative)' : 'var(--color-primary)';
+        }
+
+        function openWalletModal() {
+            renderWalletList();
+            document.getElementById('walletModal').classList.add('show');
+        }
+
+        function renderWalletList() {
+            const listContainer = document.getElementById('walletList');
+            const walletCoins = globalCoinData.filter(coin => userWallet.includes(coin.id));
+
+            if (walletCoins.length === 0) {
+                listContainer.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px 0;">Nenhuma moeda na sua carteira. Adicione algumas!</p>';
+                return;
+            }
+
+            let html = '';
+            walletCoins.forEach(coin => {
+                const priceFormatted = `$${formatPrice(coin.current_price)}`;
+                const changeClass = (coin.price_change_percentage_24h || 0) > 0 ? 'positive' : 'negative';
+                const changeFormatted = (coin.price_change_percentage_24h||0).toFixed(2) + '%';
+             
+                html += 
+                `
+                    <div class="wallet-list-item">
+                        <div>
+                            <img src="${coin.image}" class="coin-icon" alt="${coin.symbol}">
+                            ${coin.name} (${coin.symbol.toUpperCase()})
+                            <span class="${changeClass}" style="font-size:0.75rem; margin-left:10px;">${changeFormatted}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-weight:600;">${priceFormatted}</span>
+                            <button class="wallet-remove-btn" onclick="toggleCoinInWallet('${coin.id}')">Remover</button>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+
+        function toggleWalletView() {
+            isWalletViewActive = !isWalletViewActive;
+            if (isWalletViewActive) {
+                walletToggleBtn.innerText = 'Ver Todas as Moedas';
+                walletToggleBtn.classList.add('active');
+            } else {
+                walletToggleBtn.innerText = 'Ver Minha Carteira';
+                walletToggleBtn.classList.remove('active');
+            }
+            rebuildFromSearch();
+        }
+        /* --- FIM LOGICA DA CARTEIRA --- */
+
+        /* Debounce helper */
+        function debounce(fn, wait) {
+            let t;
+            return function(...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), wait);
+            };
+        }
+
+        /* --------- FETCH DADOS INICIAIS --------- */
+        async function fetchData() {
+            try {
+                const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d';
+                const data = await fetchWithRetry(url, {}, 3, 1500);
+             
+                globalCoinData = data;
+                rebuildFromSearch();
+            } catch (err) {
+                console.error("Erro CRÍTICO ao carregar API. Verifique a aba Console para detalhes:", err);
+                container.innerHTML = `<div style="text-align:center; padding-top:10%;">
+                    <h3 style="color:var(--color-negative);">Erro ao carregar dados da API.</h3> 
+                    <p style="color:#94a3b8;">Verifique se você está conectado à internet e se a API CoinGecko está acessível. Detalhes no Console (F12).</p>
+                </div>`;
+            }
+        }
+
+        /* Reconstroi nodes + UI com base no termo de busca atual E no estado da carteira */
+        function rebuildFromSearch() {
+            const term = (searchInput.value || '').toLowerCase().trim();
+            let filtered = globalCoinData.filter(c => {
+                const searchMatch = !term || c.name.toLowerCase().includes(term) || c.symbol.toLowerCase().includes(term);
+                const walletMatch = !isWalletViewActive || userWallet.includes(c.id);
+                return searchMatch && walletMatch;
+            });
+
+            if (isWalletViewActive && userWallet.length === 0) {
+                 filtered = [];
+            }
+         
+            // >>> INÍCIO DAS ALTERAÇÕES DO TAMANHO DAS BOLHAS <<<
+            const isMobileScreen = window.innerWidth <= 800;
+            // 🛑 ALTERADO: Aumenta o maxRadius e diminui o minRadius para maior contraste (200->250, 60->70 e 50->40, 30->25)
+            const maxRadius = isMobileScreen ? 70 : 250; 
+            const minRadius = isMobileScreen ? 25 : 40;
+            // >>> FIM DAS ALTERAÇÕES DO TAMANHO DAS BOLHAS <<<
+
+
+            const maxMarketCap = filtered.length ? filtered[0].market_cap : 1;
+            const minMarketCap = filtered.length ? filtered[filtered.length - 1].market_cap : 1;
+            const radiusScale = d3.scaleSqrt()
+                .domain([minMarketCap || 1, maxMarketCap || 1])
+                .range([minRadius, maxRadius]);
+
+            nodes = filtered.map(coin => {
+                const existingNode = nodes.find(n => n.id === coin.id);
+                return {
+                    id: coin.id,
+                    symbol: coin.symbol.toUpperCase(),
+                    name: coin.name,
+                    image: coin.image,
+                    price: coin.current_price,
+                    change: coin.price_change_percentage_24h || 0, 
+                    change1h: coin.price_change_percentage_1h_in_currency || 0,
+                    change24h: coin.price_change_percentage_24h_in_currency || 0, 
+                    change7d: coin.price_change_percentage_7d_in_currency || 0,
+                    marketCap: coin.market_cap,
+                    radius: radiusScale(coin.market_cap),
+                    x: existingNode ? existingNode.x : (window.innerWidth / 2) + (Math.random() - 0.5) * 80,
+                    y: existingNode ? existingNode.y : (window.innerHeight / 2) + (Math.random() - 0.5) * 80
+                };
+            });
+
+            initSimulation();
+            renderRankTable(globalCoinData.filter(c => !term || c.name.toLowerCase().includes(term) || c.symbol.toLowerCase().includes(term)));
+        }
+
+        /* ---------- RENDER RANK TABLE ---------- */
+        function renderRankTable(data) {
+            let html = '<table class="rank-table"><thead><tr><th>#</th><th>Ativo</th><th>Preço</th><th>Market Cap</th><th>24h %</th></tr></thead><tbody>';
+            data.forEach((coin, i) => {
+                const changeClass = (coin.price_change_percentage_24h || 0) > 0 ? 'positive' : 'negative';
+                html += `<tr onclick="openModalById('${coin.id}')" aria-label="Abrir ${coin.name}">
+                    <td>${i+1}</td>
+                    <td><img src="${coin.image}" class="coin-icon" alt="${coin.symbol}">${coin.name} (${coin.symbol.toUpperCase()})</td>
+                    <td>$${coin.current_price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:4})}</td>
+                    <td>$${formatMarketCap(coin.market_cap)}</td>
+                    <td class="${changeClass}">${(coin.price_change_percentage_24h||0).toFixed(2)}%</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            rankContainer.innerHTML = html;
+        }
+
+        function openModalById(coinId) {
+            const coin = globalCoinData.find(c => c.id === coinId);
+            if (!coin) return console.error('Moeda nao encontrada', coinId);
+         
+            openChartModal({
+                id: coin.id,
+                symbol: coin.symbol.toUpperCase(),
+                name: coin.name,
+                image: coin.image,
+                price: coin.current_price,
+                change1h: coin.price_change_percentage_1h_in_currency || 0,
+                change24h: coin.price_change_percentage_24h_in_currency || 0, 
+                change7d: coin.price_change_percentage_7d_in_currency || 0
+            });
+        }
+
+        /* ---------- D3 SIMULATION & BUBBLES ---------- */
+        function initSimulation() {
+            // >>> INÍCIO DAS ALTERAÇÕES DO FILTRO MOBILE (Física) <<<
+            const isMobileScreen = window.innerWidth <= 800;
+            // Ajustes de força e padding para mobile, reduzidos no desktop para bolhas maiores
+            const collisionStrength = isMobileScreen ? 0.8 : 0.5; 
+            const paddingRadius = isMobileScreen ? 2 : 1;
+            const centerStrength = isMobileScreen ? 0.05 : 0.02;
+            const velocityDecayValue = isMobileScreen ? 0.35 : 0.4;
+            const margin = isMobileScreen ? 10 : 0; 
+            // >>> FIM DAS ALTERAÇÕES DO FILTRO MOBILE (Física) <<<
+
+            const sel = d3.select('#bubble-container')
+                .selectAll('.bubble-node')
+                .data(nodes, d => d.id)
+                .join(enter => {
+                    const el = enter.append('div')
+                        .attr('class', 'bubble-node')
+                        .attr('data-name', d => d.name)
+                        .attr('data-symbol', d => d.symbol)
+                        .style('width', d => `${d.radius * 2}px`)
+                        .style('height', d => `${d.radius * 2}px`)
+                        .style('background', d => getBubbleColor(d.change))
+                        .style('border-color', d => getBorderColor(d.change))
+                        .on('click', (e, d) => openChartModal(d))
+                        .call(d3.drag()
+                            .on('start', dragstarted)
+                            .on('drag', dragged)
+                            .on('end', dragended)
+                        );
+                    el.html(d => {
+                        const fontSize = d.radius / 2.6; 
+                        return `
+                            <img src="${d.image}" class="b-img" alt="${d.symbol}">
+                            <div class="b-symbol" style="font-size:${fontSize}px">${d.symbol}</div>
+                            <div class="b-change" style="font-size:${fontSize*0.7}px">${d.change>0?'+':''}${d.change.toFixed(1)}%</div>
+                            ${d.radius > 40 ? `<div class="b-price" style="font-size:${fontSize*0.5}px">$${formatPrice(d.price)}</div>` : ''}
+                        `;
+                    });
+                    return el;
+                },
+                update => update
+                    .call(update => update.transition()
+                        .duration(300)
+                        .style('width', d => `${d.radius * 2}px`)
+                        .style('height', d => `${d.radius * 2}px`)
+                        .style('background', d => getBubbleColor(d.change))
+                        .style('border-color', d => getBorderColor(d.change))
+                        .select('.b-change').text(d => `${d.change>0?'+':''}${d.change.toFixed(1)}%`)
+                    ),
+                exit => exit.remove()
+                );
+
+            const viewportH = Math.max(window.innerHeight - 120, 400); // Define a altura
+            
+            if (simulation) simulation.stop();
+            simulation = d3.forceSimulation(nodes)
+                .force('x', d3.forceX(window.innerWidth / 2).strength(centerStrength)) 
+                .force('y', d3.forceY(viewportH / 2).strength(centerStrength)) 
+                .force('collide', d3.forceCollide(d => d.radius + paddingRadius).strength(collisionStrength)) 
+                .force('charge', d3.forceManyBody().strength(-180)) 
+                .velocityDecay(velocityDecayValue) 
+                .on('tick', ticked);
+
+            function ticked() {
+                // Acesso seguro à altura do viewport
+                const currentViewportH = Math.max(window.innerHeight - 120, 400);
+                const containerWidth = window.innerWidth;
+
+                sel.style('transform', d => `translate(${d.x - d.radius}px, ${d.y - d.radius}px)`);
+
+                // Aplica a contenção para manter as bolhas dentro do viewport
+                nodes.forEach(d => {
+                    const radius = d.radius;
+                    d.x = Math.max(radius + margin, Math.min(containerWidth - radius - margin, d.x));
+                    d.y = Math.max(radius + margin, Math.min(currentViewportH - radius - margin, d.y));
+                });
+            }
+            
+            // Ajuste o tamanho do container para acomodar a simulação
+            d3.select('#bubble-container').style('height', `${viewportH}px`);
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+        /* ---------- FIM D3 SIMULATION & BUBBLES ---------- */
+
+        /* ------------------------------
+           Funções de Formatação e Estilo (Mantidas)
+        ------------------------------ */
+
+        function formatPrice(price) {
+            if (price >= 1000) {
+                return price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            } else if (price >= 1) {
+                return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+            } else if (price > 0) {
+                return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+            }
+            return price.toFixed(2);
+        }
+
+        function formatMarketCap(cap) {
+            if (cap >= 1e12) return (cap / 1e12).toFixed(2) + 'T';
+            if (cap >= 1e9) return (cap / 1e9).toFixed(2) + 'B';
+            if (cap >= 1e6) return (cap / 1e6).toFixed(2) + 'M';
+            return cap.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function getBubbleColor(change) {
+            const base = 'rgba(255, 255, 255, 0.04)';
+
+            if (change > 5) return 'rgba(16, 185, 129, 0.15)';
+            if (change > 0) return 'rgba(16, 185, 129, 0.08)';
+            if (change < -5) return 'rgba(239, 68, 68, 0.15)';
+            if (change < 0) return 'rgba(239, 68, 68, 0.08)';
+            
+            return base;
+        }
+
+        function getBorderColor(change) {
+            if (change > 0) return 'rgba(16, 185, 129, 0.6)';
+            if (change < 0) return 'rgba(239, 68, 68, 0.6)';
+            return 'rgba(255, 255, 255, 0.08)';
+        }
+
+        /* ------------------------------
+           Funções de Modal e Chart (Mantidas)
+        ------------------------------ */
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function openCommunityModal() {
+            document.getElementById('communityModal').classList.add('show');
+        }
+
+        function openChartModal(data) {
+            currentCoinData = data;
+            const modal = document.getElementById('chartModal');
+            
+            // 1. Atualiza o texto do botão da carteira
+            updateWalletButtonText(data.id);
+            // 2. Atualiza cabeçalho do modal
+            document.getElementById('mSymbol').innerText = data.symbol;
+            document.getElementById('mPrice').innerText = `$${formatPrice(data.price)}`;
+
+            // 3. Atualiza barra de mudança de preço
+            const changes = [
+                { label: '1h', value: data.change1h },
+                { label: '24h', value: data.change24h },
+                { label: '7d', value: data.change7d }
+            ];
+            let html = changes.map(c => {
+                const changeClass = c.value > 0 ? 'positive' : 'negative';
+                const sign = c.value > 0 ? '+' : '';
+                return `
+                    <div>
+                        <div style="color:#94a3b8; font-size:0.8rem;">${c.label}</div>
+                        <div class="${changeClass}" style="font-weight:600;">${sign}${c.value.toFixed(2)}%</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('priceChangeBar').innerHTML = html;
+
+            // 4. Mostra o modal
+            modal.classList.add('show');
+            // 5. Carrega o gráfico
+            fetchChartDataAndRender(data.id);
+        }
+
+        function fetchChartDataAndRender(coinId) {
+            const DAYS = 7;
+            const mockData = generateMockPriceData(coinId, DAYS);
+            currentLabels = mockData.map(d => d.t);
+            currentPrices = mockData.map(d => d.y);
+            renderChart('line');
+        }
+
+        function renderChart(type) {
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const dataConfig = {
+                type: 'line',
+                data: {
+                    labels: currentLabels,
+                    datasets: [{
+                        label: `${currentCoinData.symbol} Preço (USD)`,
+                        data: currentPrices,
+                        backgroundColor: 'rgba(79, 70, 229, 0.15)',
+                        borderColor: 'var(--color-primary)',
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += `$${formatPrice(context.parsed.y)}`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                displayFormats: { day: 'MMM DD' }
+                            },
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return `$${formatPrice(value)}`;
+                                }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        }
+                    }
+                }
+            };
+            chartInstance = new Chart(ctx, dataConfig);
+        }
+
+        // Função de mock (mantida)
+        function generateMockPriceData(coinId, days) {
+            const data = [];
+            let price = currentCoinData.price;
+            const today = moment().endOf('day');
+            
+            for (let i = 0; i < days; i++) {
+                const date = today.clone().subtract(days - 1 - i, 'days').toDate();
+                const dailyChange = currentCoinData.change24h / 24;
+                const volatility = Math.random() * 0.03 - 0.015; 
+                
+                price = price * (1 + (dailyChange / 100) + volatility);
+                data.push({ t: date, y: price });
+            }
+            
+            return data;
+        }
+
+        // Função para simular o envio de feedback (mantida)
+        function handleFeedbackSubmit(event) {
+            event.preventDefault();
+            const text = document.getElementById('feedbackText').value;
+            const email = document.getElementById('feedbackEmail').value;
+            
+            if (text.trim() === '') return;
+            alert(`Feedback enviado com sucesso!\nComentário: ${text}\nE-mail: ${email || 'Não fornecido'}`);
+            closeModal('communityModal');
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('feedbackEmail').value = '';
+        }
+
+        /* ------------------------------
+           Inicialização
+        ------------------------------ */
+        window.addEventListener('resize', debounce(() => {
+            if (globalCoinData.length) {
+                rebuildFromSearch();
+            }
+        }, 300));
+
+        searchInput.addEventListener('input', debounce(rebuildFromSearch, 300));
+        
+        // Inicia o carregamento dos dados ao carregar a página
+        fetchData();
+
+    </script>
+</body>
+</html>
