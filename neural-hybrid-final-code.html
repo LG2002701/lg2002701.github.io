@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Neural Hybrid v6 - Sistema Quantitativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        header {
+            padding: 1.5rem 5%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        
+        nav ul {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+        
+        nav a {
+            color: #888;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.95rem;
+        }
+        
+        nav a:hover {
+            color: #fff;
+        }
+        
+        .hero {
+            padding: 6rem 5% 4rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            padding: 5rem 5%;
+            border-top: 1px solid #2a2a2a;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        
+        .cta-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .cta-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+            color: #0a0a0a;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+        
+        .cta-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+        
+        .cta-subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+        
+        .steps-container {
+            background: #0a0a0a;
+            border-radius: 16px;
+            padding: 3rem;
+            border: 1px solid #1a1a1a;
+            text-align: left;
+            margin-top: 2rem;
+        }
+        
+        .step {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+            align-items: flex-start;
+        }
+        
+        .step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            min-width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+            color: #0a0a0a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        
+        .step-content h3 {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .step-content p {
+            color: #888;
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+        
+        .step-content code {
+            display: inline-block;
+            background: #1a1a1a;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            margin: 0.5rem 0;
+        }
+        
+        .cta-note {
+            background: #0f0f0f;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            border-left: 4px solid #fff;
+        }
+        
+        .cta-note p {
+            color: #aaa;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .cta-note strong {
+            color: #fff;
+        }
+        
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+        
+        .section {
+            padding: 4rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .section-intro {
+            color: #888;
+            margin-bottom: 3rem;
+            max-width: 700px;
+        }
+        
+        .visual-demo {
+            background: #0f0f0f;
+            padding: 5rem 5%;
+            border-top: 1px solid #1a1a1a;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        .demo-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+        
+        .demo-item {
+            background: #0a0a0a;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1a1a1a;
+            transition: all 0.3s;
+        }
+        
+        .demo-item:hover {
+            border-color: #2a2a2a;
+            transform: translateY(-8px);
+        }
+        
+        .demo-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .demo-caption {
+            padding: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .layers-section {
+            padding: 5rem 5%;
+            background: #0a0a0a;
+        }
+        
+        .layers-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .layers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .layer-card {
+            background: #0f0f0f;
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid #1a1a1a;
+            transition: all 0.2s;
+        }
+        
+        .layer-card:hover {
+            border-color: #2a2a2a;
+            transform: translateY(-4px);
+        }
+        
+        .layer-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .layer-number {
+            width: 40px;
+            height: 40px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        
+        .layer-card h3 {
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .layer-card p {
+            color: #888;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+        
+        .layer-details {
+            background: #0a0a0a;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .layer-details ul {
+            list-style: none;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .layer-details li {
+            padding: 0.4rem 0;
+        }
+        
+        .layer-details li:before {
+            content: "→ ";
+            color: #444;
+        }
+        
+        .layer-weight {
+            display: inline-block;
+            background: #1a1a1a;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #aaa;
+            font-weight: 600;
+        }
+        
+        .risk-analysis {
+            background: #0f0f0f;
+            padding: 5rem 5%;
+            border-top: 1px solid #1a1a1a;
+        }
+        
+        .risk-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .risk-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+        
+        .risk-metrics {
+            display: grid;
+            gap: 2rem;
+        }
+        
+        .metric-card {
+            background: #0a0a0a;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #1a1a1a;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.8rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-desc {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .var-analysis {
+            background: #0a0a0a;
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid #1a1a1a;
+        }
+        
+        .var-analysis h3 {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+        
+        .var-item {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        .var-item:last-child {
+            border-bottom: none;
+        }
+        
+        .var-title {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .var-value {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .var-note {
+            background: #0f0f0f;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+            border-left: 3px solid #fff;
+        }
+        
+        .var-note p {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .spec-item {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: #0f0f0f;
+            border-radius: 12px;
+            border: 1px solid #1a1a1a;
+        }
+        
+        .spec-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .spec-label {
+            color: #666;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        footer {
+            padding: 4rem 5%;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #1a1a1a;
+        }
+        
+        @media (max-width: 968px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .risk-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            nav ul {
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Neural Hybrid v6</div>
+            <ul>
+                <li><a href="#teste">Teste Agora</a></li>
+                <li><a href="#visual">Visual</a></li>
+                <li><a href="#layers">Camadas</a></li>
+                <li><a href="#risk">Análise VAR</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <h1>Sistema quantitativo multi-layer</h1>
+        <p class="subtitle">Rede neural de 6 camadas processando mean reversion, regime de mercado, volatilidade e momentum para análise de contexto operacional</p>
+    </section>
+    
+    <section id="teste" class="cta-section">
+        <div class="cta-content">
+            <span class="cta-badge">🔥 Grátis • Acabou de sair do forno</span>
+            <h2 class="cta-title">Teste agora no TradingView</h2>
+            <p class="cta-subtitle">Configure o Neural Hybrid v6 no seu gráfico em menos de 2 minutos. Zero custo, zero complicação.</p>
+            
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Abra o TradingView</h3>
+                        <p>Acesse <strong>tradingview.com</strong> e abra qualquer gráfico (recomendamos Bitcoin ou Ethereum para melhores resultados)</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Clique em "Indicadores"</h3>
+                        <p>No topo do gráfico, procure o botão "Indicadores" (ou pressione <code>/</code> no teclado)</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Busque o indicador</h3>
+                        <p>Na barra de pesquisa, digite:</p>
+                        <code>Neural Hybrid v6 - Quantitative System</code>
+                        <p style="margin-top: 0.5rem;">Clique no indicador quando aparecer nos resultados</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Pronto! Sistema ativo</h3>
+                        <p>O Neural Hybrid v6 vai aparecer no seu gráfico com sinais de compra/venda, score multi-layer e análise de regime em tempo real. Configure o timeframe em 15-30min para melhores resultados.</p>
+                    </div>
+                </div>
+                
+                <div class="cta-note">
+                    <p><strong>💡 Dica:</strong> O sistema funciona melhor em mercados com liquidez decente. Evite usar em shitcoins de baixo volume. Recomendamos: BTC, ETH, SOL, ou índices tradicionais como S&P500.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="visual" class="visual-demo">
+        <div class="demo-content">
+            <h2>Sistema em operação</h2>
+            <p class="section-intro">Visualização do modelo rodando no TradingView</p>
+            
+            <div style="max-width: 900px; margin: 0 auto;">
+                <div class="demo-item">
+                    <img src="https://i.postimg.cc/Dy1ngSZw/IMG-9248.jpg" 
+                         alt="Sistema Neural Hybrid v6 operando em Bitcoin" 
+                         style="width: 100%; height: auto; display: block;">
+                    <div class="demo-caption">Bitcoin / USD - Sistema Neural Hybrid v6</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="layers" class="layers-section">
+        <div class="layers-content">
+            <h2>Arquitetura das 6 camadas</h2>
+            <p class="section-intro">Cada camada processa uma dimensão diferente do mercado. Score final é a soma ponderada de todas as layers — threshold de ±0.25 para geração de sinal</p>
+            
+            <div class="layers-grid">
+                <div class="layer-card">
+                    <div class="layer-header">
+                        <div class="layer-number">0</div>
+                        <h3>Camada Base</h3>
+                    </div>
+                    <p>Foundation do sistema combinando três modelos estatísticos fundamentais. Responsável pela maior parte do score final.</p>
+                    <div class="layer-details">
+                        <ul>
+                            <li>Mean Reversion via Z-Score (threshold ±2.0)</li>
+                            <li>Momentum com análise de autocorrelação</li>
+                            <li>Modelo probabilístico de retornos</li>
+                            <li>Kelly Criterion para sizing</li>
+                        </ul>
+                    </div>
+                    <span class="layer-weight">Peso: 40%</span>
+                </div>
+                
+                <div class="layer-card">
+                    <div class="layer-header">
+                        <div class="layer-number">1</div>
+                        <h3>Market Regime</h3>
+                    </div>
+                    <p>Identifica o regime atual do mercado através da relação entre médias móveis exponenciais de diferentes períodos.</p>
+                    <div class="layer-details">
+                        <ul>
+                            <li>EMA 20 (rápida) vs EMA 100 (lenta)</li>
+                            <li>Score: +1 (bull) | -1 (bear) | 0 (range)</li>
+                            <li>Regime strength via distância relativa</li>
+                            <li>Filtra sinais contrários ao regime dominante</li>
+                        </ul>
+                    </div>
+                    <span class="layer-weight">Peso: 10%</span>
+                </div>
+                
+                <div class="layer-card">
+                    <div class="layer-header">
+                        <div class="layer-number">2</div>
+                        <h3>Volatility Regime</h3>
+                    </div>
+                    <p>Mapeia o regime de volatilidade atual e ajusta exposição dinamicamente baseado na intensidade.</p>
+                    <div class="layer-details">
+                        <ul>
+                            <li>ATR(14) vs ATR(50) para contexto</li>
+                            <li>Vol intensity ratio para ajuste de risco</li>
+                            <li>Reduz exposição em alta vol</li>
+                            <li>Aumenta agressividade em baixa vol</li>
+                        </ul>
+                    </div>
+                    <span class="layer-weight">Peso: 10%</span>
+                </div>
+                
+                <div class="layer-card">
+                    <div class="layer-header">
+                        <div class="layer-number">3</div>
+                        <h3>Volume / VWAP</h3>
+                    </div>
+                    <p>Valida movimentos através de análise de volume. Combina VWAP com On-Balance Volume para confirmar força institucional.</p>
+                    <div class="layer-details">
+                        <ul>
+                            <li>Posição do preço relativa ao VWAP</li>
+                            <li>Slope do OBV (5 períodos)</li>
+                            <li>Score combinado: VWAP 60% + OBV 40%</li>
+                            <li>Detecta divergências price/volume</li>
+                        </ul>
+                    </div>
+                    <span class="layer-weight">Peso: 10%</span>
+                </div>
+                
+                <div class="layer-card">
+                    <div class="layer-header">
+                        <div class="layer-number">4</div>
+                        <h3>KAMA Noise Filter</h3>
+                    </div>
+                    <p>Kaufman Adaptive Moving Average com efficiency ratio. Separa movimentos genuínos de ruído de mercado.</p>
+                    <div class="layer-details">
+                        <ul>
+                            <li>KAMA adaptativo (lookback 10)</li>
+                            <li>Efficiency Ratio > 0.6 → trending</li>
+                            <li>Efficiency Ratio < 0.3 → choppy/noise</li>
+                            <li>Desvio e slope para confirmação direcional</li>
+                        </ul>
+                    </div>
+                    <span class="layer-weight">Peso: 10%</span>
+                </div>
+                
+                <div class="layer-card">
+                    <div class="layer-header">
+                        <div class="layer-number">5</div>
+                        <h3>Bayesian Count</h3>
+                    </div>
+                    <p>Abordagem probabilística contando movimentos positivos e negativos. Estima probabilidade de continuação.</p>
+                    <div class="layer-details">
+                        <ul>
+                            <li>Lookback: 30 barras</li>
+                            <li>Contagem up/down para calcular prob</li>
+                            <li>Prob > 55% → score +1</li>
+                            <li>Prob < 45% → score -1</li>
+                        </ul>
+                    </div>
+                    <span class="layer-weight">Peso: 5%</span>
+                </div>
+                
+                <div class="layer-card">
+                    <div class="layer-header">
+                        <div class="layer-number">6</div>
+                        <h3>Candle Sentiment</h3>
+                    </div>
+                    <p>Price action pura. Analisa anatomia do candle (corpo, sombras, range) para capturar sentiment imediato.</p>
+                    <div class="layer-details">
+                        <ul>
+                            <li>Body ratio: corpo > 60% → forte</li>
+                            <li>Lower wick > 1.5x corpo → bullish</li>
+                            <li>Upper wick > 1.5x corpo → bearish</li>
+                            <li>Detecta indecisão e reversões</li>
+                        </ul>
+                    </div>
+                    <span class="layer-weight">Peso: 5%</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="risk" class="risk-analysis">
+        <div class="risk-container">
+            <h2>Análise de risco (VAR approach)</h2>
+            <p class="section-intro">Paper trading com 252 operações demonstra perfil de risco assimétrico com expectativa matemática positiva</p>
+            
+            <div class="risk-grid">
+                <div class="risk-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total de Operações</div>
+                        <div class="metric-value">252</div>
+                        <div class="metric-desc">Volume estatisticamente significativo para análise de distribuição de retornos e cálculo de métricas de risco</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Taxa de Acerto</div>
+                        <div class="metric-value">42%</div>
+                        <div class="metric-desc">Abaixo de 50%, mas compensado por payoff assimétrico — sistema coleta pequenas perdas e captura grandes movimentos</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Payoff Ratio</div>
+                        <div class="metric-value">2.72</div>
+                        <div class="metric-desc">Ganho médio 2.72x maior que perda média. Compensa baixa win rate e gera expectativa matemática positiva</div>
+                    </div>
+                </div>
+                
+                <div class="var-analysis">
+                    <h3>Value at Risk</h3>
+                    
+                    <div class="var-item">
+                        <div class="var-title">Expectativa Matemática</div>
+                        <div class="var-value">+0.58R por trade</div>
+                    </div>
+                    
+                    <div class="var-item">
+                        <div class="var-title">Max Drawdown Esperado</div>
+                        <div class="var-value">~18-22%</div>
+                    </div>
+                    
+                    <div class="var-item">
+                        <div class="var-title">Sequência Negativa (95% conf.)</div>
+                        <div class="var-value">8-10 trades</div>
+                    </div>
+                    
+                    <div class="var-item">
+                        <div class="var-title">Kelly Criterion Sugerido</div>
+                        <div class="var-value">12% · Fração 0.5 = 6%</div>
+                    </div>
+                    
+                    <div class="var-note">
+                        <p><strong>Interpretação:</strong> Com 42% de acerto e payoff 2.72, a cada 100 trades esperamos 42 wins e 58 losses. Se win médio = 2.72R e loss médio = 1R, temos: (42 × 2.72R) - (58 × 1R) = +56.24R líquido, ou +0.56R por trade. Sistema é matematicamente rentável mesmo perdendo mais vezes do que ganha.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section">
+        <h2>Especificações técnicas</h2>
+        
+        <div class="specs-grid">
+            <div class="spec-item">
+                <div class="spec-value">15.5min</div>
+                <div class="spec-label">Timeframe Médio</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">±0.25</div>
+                <div class="spec-label">Signal Threshold</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">±2.0</div>
+                <div class="spec-label">Z-Score Bands</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">0.5</div>
+                <div class="spec-label">Kelly Fraction</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">252</div>
+                <div class="spec-label">Dias/Ano</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">24/7</div>
+                <div class="spec-label">Uptime</div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <p>Neural Hybrid v6 — Sistema quantitativo para criptoativos</p>
+    </footer>
+</body>
+</html>
